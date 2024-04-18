@@ -1,9 +1,9 @@
-y = 1
-def x():
-    if y == 1:
-        print(y)
-        y = 0
-    else:
-        print(y)
-for i in range(5):
-    x()
+import plotly.express as px
+import pandas as pd
+
+df = pd.DataFrame(dict(
+    x = [1, 3, 2, 4],
+    y = [1, 2, 3, 4]
+))
+fig = px.line(df, x="x", y="y", title="Unsorted Input") 
+fig.show()
