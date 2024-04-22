@@ -7,9 +7,10 @@ point_spacing = 5
 scale_factor = 1.0
 
 flag, x1, y1, x2, y2 = 1, 0, 0, 0, 0
+data = [[],[]]
 
-def paint(event):
-    global flag, x1, y1, x2, y2
+def paint_continuous(event):
+    global flag, x1, y1, x2, y2, data
     color = 'red'
     if flag == 1:
         x1, y1 = (event.x), (event.y)
@@ -17,20 +18,54 @@ def paint(event):
     x2, y2 = (event.x), (event.y)
     if ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** (1 / 2) >= point_spacing:
         c.create_oval(event.x - 2, event.y - 2, event.x + 2, event.y + 2, fill=color, outline=color)
-        print(event.x,event.y)
+        data[0].append(event.x - canvas_width / 2)
+        data[1].append(event.y - canvas_height / 2)
         flag = 1
+
+def paint_discrete(event):
+    color = 'red'
+    c.create_oval(event.x - 2, event.y - 2, event.x + 2, event.y + 2, fill=color, outline=color)
+    data[0].append(event.x - canvas_width / 2)
+    data[1].append(event.y - canvas_height / 2)
 
 def on_slider_change(value):
     global point_spacing
     point_spacing = int(value)
 
+
 def on_mousewheel(event):
     global scale_factor
     if event.delta > 0:
-        scale_factor *= 1.1  # Zoom in
+        scale_factor += 0.1  # Zoom in
     else:
-        scale_factor /= 1.1  # Zoom out
+        scale_factor -= 0.1  # Zoom out
     c.scale("all", event.x, event.y, scale_factor, scale_factor)
+    redraw_grid_and_axis()  # Redraw grid and axis
+
+def redraw_grid_and_axis():
+    c.delete()  # Clear existing grid and axis
+
+def toggle_state():
+    if button.cget("text") == "Discrete":
+        button.config(text="Continuous")
+        c.bind('<B1-Motion>', paint_continuous)
+    else:
+        button.config(text="Discrete")
+        c.bind('<ButtonRelease>', paint_discrete)
+
+def draw_grid():
+    global scale_factor
+    for i in range(-100 * int((scale_factor) * 10), 100 * int((scale_factor) * 10)):
+        c.create_line(canvas_width / 2 + i *  10 * scale_factor, 0,
+                      canvas_width / 2 + i *  10 * scale_factor, canvas_height,
+                      fill="lightgray", dash=(2, 2), tag="grid")
+        c.create_line(0, canvas_height / 2 + i *  10 * scale_factor,
+                      canvas_width, canvas_height / 2 + i *  10 * scale_factor,
+                      fill="lightgray", dash=(2, 2), tag="grid")
+
+def draw_axis():
+    c.create_line(0, canvas_height / 2, canvas_width, canvas_height / 2, fill="black", tag="axis")  # X axis
+    c.create_line(canvas_width / 2, 0, canvas_width / 2, canvas_height, fill="black", tag="axis")  # Y axis
 
 
 # Create the main window
@@ -40,7 +75,7 @@ master.title('Painting in Python')
 # Create the canvas
 c = Canvas(master, width=canvas_width, height=canvas_height, bg='white')
 c.pack(expand=YES, fill=BOTH)
-c.bind('<B1-Motion>', paint)
+c.bind('<ButtonRelease>', paint_discrete)
 c.bind("<MouseWheel>", on_mousewheel)
 
 # Create the slider
@@ -51,15 +86,14 @@ slider.pack(side=BOTTOM, padx=20, pady=10)
 slider_label = Label(master, text='Point Spacing')
 slider_label.pack(side=BOTTOM)
 
-# Draw X and Y axes
-c.create_line(0, canvas_height / 2, canvas_width, canvas_height / 2, fill="black")  # X axis
-c.create_line(canvas_width / 2, 0, canvas_width / 2, canvas_height, fill="black")  # Y axis
+# Create the binary button
+button = Button(master, text="Discrete", command=toggle_state)
+button.pack(pady=20)
 
-# Draw grid lines
-for i in range(-10, 11):
-    c.create_line(canvas_width / 2 + i * point_spacing * 10, 0, canvas_width / 2 + i * point_spacing * 10, canvas_height, fill="lightgray", dash=(2, 2))
-    c.create_line(0, canvas_height / 2 + i * point_spacing * 10, canvas_width, canvas_height / 2 + i * point_spacing * 10, fill="lightgray", dash=(2, 2))
-
+# Draw initial grid and axis
+draw_grid()
+draw_axis()
 
 # Start the Tkinter event loop
 master.mainloop()
+print(data)
