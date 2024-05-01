@@ -2,7 +2,7 @@ from tkinter import *
 import time
 
 canvas_width = 600
-canvas_height = 450
+canvas_height = 500
 point_spacing = 5
 scale_factor = 1.0
 
