@@ -19,14 +19,14 @@ def paint_continuous(event):
     if ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** (1 / 2) >= point_spacing:
         c.create_oval(event.x - 2, event.y - 2, event.x + 2, event.y + 2, fill=color, outline=color)
         data[0].append(event.x - canvas_width / 2)
-        data[1].append(event.y - canvas_height / 2)
+        data[1].append(canvas_height / 2 - event.y)
         flag = 1
 
 def paint_discrete(event):
     color = 'red'
     c.create_oval(event.x - 2, event.y - 2, event.x + 2, event.y + 2, fill=color, outline=color)
     data[0].append(event.x - canvas_width / 2)
-    data[1].append(event.y - canvas_height / 2)
+    data[1].append(canvas_height / 2 - event.y)
 
 def on_slider_change(value):
     global point_spacing
@@ -38,12 +38,17 @@ def on_mousewheel(event):
     if event.delta > 0:
         scale_factor += 0.1  # Zoom in
     else:
-        scale_factor -= 0.1  # Zoom out
+        scale_factor -= 0.1 # Zoom out
+    print("scale: ",scale_factor)
+    c.scale("all", event.x, event.y, 1, 1)
     c.scale("all", event.x, event.y, scale_factor, scale_factor)
     redraw_grid_and_axis()  # Redraw grid and axis
 
 def redraw_grid_and_axis():
-    c.delete()  # Clear existing grid and axis
+    c.delete("grid", "axis")  # Clear existing grid and axis
+    draw_grid()
+    draw_axis()
+
 
 def toggle_state():
     if button.cget("text") == "Discrete":
@@ -55,12 +60,12 @@ def toggle_state():
 
 def draw_grid():
     global scale_factor
-    for i in range(-100 * int((scale_factor) * 10), 100 * int((scale_factor) * 10)):
-        c.create_line(canvas_width / 2 + i *  10 * scale_factor, 0,
-                      canvas_width / 2 + i *  10 * scale_factor, canvas_height,
+    for i in range(-100 * int((scale_factor) * 10), 100 * int((scale_factor) * 10) + 1,10):
+        c.create_line(canvas_width / 2 + i * scale_factor, 0,
+                      canvas_width / 2 + i * scale_factor, canvas_height,
                       fill="lightgray", dash=(2, 2), tag="grid")
-        c.create_line(0, canvas_height / 2 + i *  10 * scale_factor,
-                      canvas_width, canvas_height / 2 + i *  10 * scale_factor,
+        c.create_line(0, canvas_height / 2 + i * scale_factor,
+                      canvas_width, canvas_height / 2 + i * scale_factor,
                       fill="lightgray", dash=(2, 2), tag="grid")
 
 def draw_axis():
@@ -96,4 +101,5 @@ draw_axis()
 
 # Start the Tkinter event loop
 master.mainloop()
-print(data)
+print(data[0])
+print(data[1])
